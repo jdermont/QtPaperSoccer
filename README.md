@@ -6,7 +6,7 @@ Paper Soccer ai made in c++/qt. **Not foolproof and probably prone to crashes**,
 
 # Download and run
 
-For windows download the zip from [release page](Ya Paper Soccer.zip). Extract and run either **PaperSoccer.exe** or the faster **PaperSoccer-avx2.exe** if it works. The **96_32_net** file must be in the same folder.
+For windows download the zip from [release page](https://github.com/jdermont/QtPaperSoccer/releases/tag/v1.0.0) the Ya.Paper.Soccer.zip. Extract and run either **PaperSoccer.exe** or the faster **PaperSoccer-avx2.exe** if it works. The **96_32_net** file must be in the same folder.
 
 For linux (and mac?):
 
