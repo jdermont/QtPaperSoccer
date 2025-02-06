@@ -1,7 +1,7 @@
 # QtPaperSoccer
 Paper Soccer ai made in c++/qt. **Not foolproof and probably prone to crashes**, the GUI was made quickly from the personal project to be somewhat usable to close people. I'm not gonna do much regarding the GUI, but the patches are welcomed.
 
-![screen 1](images/screen1.png) ![screen 2](images/screen2.png)
+![screen 1](screen1.png) ![screen 2](screen2.png)
 
 
 # Download and run
