@@ -45,9 +45,6 @@ li.checked::marker { content: &quot;\2612&quot;; }
        </widget>
       </item>
       <item>
-       <widget class="QLineEdit" name="lineEdit_2"/>
-      </item>
-      <item>
        <widget class="QLabel" name="statsLabel">
         <property name="text">
          <string>0 : 0</string>

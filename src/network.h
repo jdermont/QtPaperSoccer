@@ -880,4 +880,520 @@ public:
     }
 };
 
+class NetworkDeep : public Network {
+public:
+    const int hidden2;
+    vector<float> hiddenWeights2;
+    vector<float> aHiddenWeights2;
+    vector<float> nHiddenWeights2;
+    vector<float> hiddenMomentum2;
+
+    explicit NetworkDeep(int inputs, int hidden, int hidden2) : Network(inputs,hidden), hidden2(hidden2) {
+        // hiddenWeights.resize(inputs * hidden);
+        // aHiddenWeights.resize(inputs * hidden);
+        // nHiddenWeights.resize(inputs * hidden);
+        // hiddenMomentum.resize(inputs * hidden);
+        hiddenWeights2.resize(hidden * hidden2);
+        aHiddenWeights2.resize(hidden * hidden2);
+        nHiddenWeights2.resize(hidden * hidden2);
+        hiddenMomentum2.resize(hidden * hidden2);
+        outputWeights.resize(hidden2);
+        aOutputWeights.resize(hidden2);
+        nOutputWeights.resize(hidden2);
+        outputMomentum.resize(hidden2);
+
+        Random random;
+        for (auto & h : hiddenWeights) {
+            h = random.nextFloat(-0.05f,0.05f);
+        }
+        for (auto & h : hiddenWeights2) {
+            h = random.nextFloat(-0.05f,0.05f);
+        }
+        for (auto & o : outputWeights) {
+            o = random.nextFloat(-0.05f,0.05f);
+        }
+    }
+
+    virtual void setWeights(Network *other) {
+        this->hiddenWeights = other->hiddenWeights;
+        this->hiddenWeights2 = ((NetworkDeep*)other)->hiddenWeights2;
+        this->outputWeights = other->outputWeights;
+    }
+
+    virtual void shrinkWeights(float gamma) {
+        if (gamma < -1) return;
+        for (auto & h : hiddenWeights) {
+            if (h < -5) h = -5;
+            if (h > 5) h = 5;
+        }
+        for (auto & h : hiddenWeights2) {
+            if (h < -5) h = -5;
+            if (h > 5) h = 5;
+        }
+        for (auto & h : outputWeights) {
+            if (h < -5) h = -5;
+            if (h > 5) h = 5;
+        }
+    }
+
+    virtual void load(string name1) {
+        cout << "load " << name1 << endl;
+        ifstream plik; plik.open(name1,ios::binary);
+        {
+            char result[sizeof(float) * hiddenWeights.size()];
+            plik.read(result, sizeof(float) * hiddenWeights.size());
+            memcpy(&hiddenWeights[0], result, sizeof(float) * hiddenWeights.size());
+        }
+        {
+            char result[sizeof(float) * hiddenWeights2.size()];
+            plik.read(result, sizeof(float) * hiddenWeights2.size());
+            memcpy(&hiddenWeights2[0], result, sizeof(float) * hiddenWeights2.size());
+        }
+        char result[sizeof(float) * outputWeights.size()];
+        plik.read(result, sizeof(float) * outputWeights.size());
+        memcpy(&outputWeights[0], result, sizeof(float) * outputWeights.size());
+        plik.close();
+    }
+
+    virtual void save(string name) {
+        string name1 = std::to_string(hidden)+"_"+name;
+        cout << "save " << name1 << endl;
+        ofstream plik; plik.open(name1, ios::out | ios::binary);
+        {
+            char result[sizeof(float) * hiddenWeights.size()];
+            memcpy(result, &hiddenWeights[0], sizeof(float) * hiddenWeights.size());
+            plik.write(result, sizeof(float) * hiddenWeights.size());
+        }
+        {
+            char result[sizeof(float) * hiddenWeights2.size()];
+            memcpy(result, &hiddenWeights2[0], sizeof(float) * hiddenWeights2.size());
+            plik.write(result, sizeof(float) * hiddenWeights2.size());
+        }
+        char result[sizeof(float) * outputWeights.size()];
+        memcpy(result, &outputWeights[0], sizeof(float) * outputWeights.size());
+        plik.write(result, sizeof(float) * outputWeights.size());
+        plik.close();
+    }
+
+    virtual void loadCheckpoint(string name) {
+        string name1 = "_"+std::to_string(hidden)+"_"+name;
+        cout << "load checkpoint " << name1 << endl;
+        ifstream plik; plik.open(name1);
+        {
+            char result[sizeof(float) * hiddenWeights.size()];
+            plik.read(result, sizeof(float) * hiddenWeights.size());
+            memcpy(&hiddenWeights[0], result, sizeof(float) * hiddenWeights.size());
+        }
+        {
+            char result[sizeof(float) * hiddenMomentum.size()];
+            plik.read(result, sizeof(float) * hiddenMomentum.size());
+            memcpy(&hiddenMomentum[0], result, sizeof(float) * hiddenMomentum.size());
+        }
+        {
+            char result[sizeof(float) * aHiddenWeights.size()];
+            plik.read(result, sizeof(float) * aHiddenWeights.size());
+            memcpy(&aHiddenWeights[0], result, sizeof(float) * aHiddenWeights.size());
+        }
+        {
+            char result[sizeof(float) * nHiddenWeights.size()];
+            plik.read(result, sizeof(float) * nHiddenWeights.size());
+            memcpy(&nHiddenWeights[0], result, sizeof(float) * nHiddenWeights.size());
+        }
+        {
+            char result[sizeof(float) * hiddenWeights2.size()];
+            plik.read(result, sizeof(float) * hiddenWeights2.size());
+            memcpy(&hiddenWeights2[0], result, sizeof(float) * hiddenWeights2.size());
+        }
+        {
+            char result[sizeof(float) * hiddenMomentum2.size()];
+            plik.read(result, sizeof(float) * hiddenMomentum2.size());
+            memcpy(&hiddenMomentum2[0], result, sizeof(float) * hiddenMomentum2.size());
+        }
+        {
+            char result[sizeof(float) * aHiddenWeights2.size()];
+            plik.read(result, sizeof(float) * aHiddenWeights2.size());
+            memcpy(&aHiddenWeights2[0], result, sizeof(float) * aHiddenWeights2.size());
+        }
+        {
+            char result[sizeof(float) * nHiddenWeights2.size()];
+            plik.read(result, sizeof(float) * nHiddenWeights2.size());
+            memcpy(&nHiddenWeights2[0], result, sizeof(float) * nHiddenWeights2.size());
+        }
+        {
+            char result[sizeof(float) * outputWeights.size()];
+            plik.read(result, sizeof(float) * outputWeights.size());
+            memcpy(&outputWeights[0], result, sizeof(float) * outputWeights.size());
+        }
+        {
+            char result[sizeof(float) * outputMomentum.size()];
+            plik.read(result, sizeof(float) * outputMomentum.size());
+            memcpy(&outputMomentum[0], result, sizeof(float) * outputMomentum.size());
+        }
+        {
+            char result[sizeof(float) * aOutputWeights.size()];
+            plik.read(result, sizeof(float) * aOutputWeights.size());
+            memcpy(&aOutputWeights[0], result, sizeof(float) * aOutputWeights.size());
+        }
+        {
+            char result[sizeof(float) * nOutputWeights.size()];
+            plik.read(result, sizeof(float) * nOutputWeights.size());
+            memcpy(&nOutputWeights[0], result, sizeof(float) * nOutputWeights.size());
+        }
+
+        plik.close();
+    }
+
+    virtual void saveCheckpoint(string name) {
+        string name1 = "_"+std::to_string(hidden)+"_"+name;
+        cout << "save checkpoint " << name1 << endl;
+        ofstream plik; plik.open(name1, ios::out | ios::binary);
+        {
+            char result[sizeof(float) * hiddenWeights.size()];
+            memcpy(result, &hiddenWeights[0], sizeof(float) * hiddenWeights.size());
+            plik.write(result, sizeof(float) * hiddenWeights.size());
+        }
+        {
+            char result[sizeof(float) * hiddenMomentum.size()];
+            memcpy(result, &hiddenMomentum[0], sizeof(float) * hiddenMomentum.size());
+            plik.write(result, sizeof(float) * hiddenMomentum.size());
+        }
+        {
+            char result[sizeof(float) * aHiddenWeights.size()];
+            memcpy(result, &aHiddenWeights[0], sizeof(float) * aHiddenWeights.size());
+            plik.write(result, sizeof(float) * aHiddenWeights.size());
+        }
+        {
+            char result[sizeof(float) * nHiddenWeights.size()];
+            memcpy(result, &nHiddenWeights[0], sizeof(float) * nHiddenWeights.size());
+            plik.write(result, sizeof(float) * nHiddenWeights.size());
+        }
+        {
+            char result[sizeof(float) * hiddenWeights2.size()];
+            memcpy(result, &hiddenWeights2[0], sizeof(float) * hiddenWeights2.size());
+            plik.write(result, sizeof(float) * hiddenWeights2.size());
+        }
+        {
+            char result[sizeof(float) * hiddenMomentum2.size()];
+            memcpy(result, &hiddenMomentum2[0], sizeof(float) * hiddenMomentum2.size());
+            plik.write(result, sizeof(float) * hiddenMomentum2.size());
+        }
+        {
+            char result[sizeof(float) * aHiddenWeights2.size()];
+            memcpy(result, &aHiddenWeights2[0], sizeof(float) * aHiddenWeights2.size());
+            plik.write(result, sizeof(float) * aHiddenWeights2.size());
+        }
+        {
+            char result[sizeof(float) * nHiddenWeights2.size()];
+            memcpy(result, &nHiddenWeights2[0], sizeof(float) * nHiddenWeights2.size());
+            plik.write(result, sizeof(float) * nHiddenWeights2.size());
+        }
+        {
+            char result[sizeof(float) * outputWeights.size()];
+            memcpy(result, &outputWeights[0], sizeof(float) * outputWeights.size());
+            plik.write(result, sizeof(float) * outputWeights.size());
+        }
+        {
+            char result[sizeof(float) * outputMomentum.size()];
+            memcpy(result, &outputMomentum[0], sizeof(float) * outputMomentum.size());
+            plik.write(result, sizeof(float) * outputMomentum.size());
+        }
+        {
+            char result[sizeof(float) * aOutputWeights.size()];
+            memcpy(result, &aOutputWeights[0], sizeof(float) * aOutputWeights.size());
+            plik.write(result, sizeof(float) * aOutputWeights.size());
+        }
+        {
+            char result[sizeof(float) * nOutputWeights.size()];
+            memcpy(result, &nOutputWeights[0], sizeof(float) * nOutputWeights.size());
+            plik.write(result, sizeof(float) * nOutputWeights.size());
+        }
+        plik.close();
+    }
+
+    virtual float getScoreDiff(const vector<int> & indexesBase, const vector<int> & indexes, int id) {
+        vector<float> scores(hidden);
+        for (auto & index : indexesBase) {
+            for (int i=0; i < hidden; i++) {
+                scores[i] -= hiddenWeights[index*hidden+i];
+            }
+        }
+        for (auto & index : indexes) {
+            for (int i=0; i < hidden; i++) {
+                scores[i] += hiddenWeights[index*hidden+i];
+            }
+        }
+        for (int i=0; i < hidden; i++) {
+            scores[i] = relu2(cacheScores[id * hidden + i] + scores[i]);
+        }
+
+        // float output = 0;
+        // for (int i=0; i < hidden2; i++) {
+        //     float score = 0.0;
+        //     for (int j=0; j < hidden; j++) {
+        //         score += scores[j] * hiddenWeights2[i*hidden+j];
+        //     }
+        //     score = relu(score);
+        //     output += outputWeights[i] * score;
+        // }
+
+        vector<float> scores2(hidden2);
+        for (int i=0; i < hidden; i++) {
+            for (int j=0; j < hidden2; j++) {
+                scores2[j] += hiddenWeights2[i*hidden2+j] * scores[i];
+            }
+        }
+        for (int i=0; i < hidden2; i++) {
+            scores2[i] = relu(scores2[i]);
+        }
+
+        float output = 0;
+        for (int i=0; i < hidden2; i++) {
+            output += outputWeights[i] * scores2[i];
+        }
+
+        return fast_tanh(output);
+    }
+
+    virtual float getScore(const vector<int> & indexes) {
+        vector<float> scores(hidden);
+        for (auto & index : indexes) {
+            for (int i=0; i < hidden; i++) {
+                scores[i] += hiddenWeights[index*hidden+i];
+            }
+        }
+        for (int i=0; i < hidden; i++) {
+            scores[i] = relu2(scores[i]);
+        }
+
+        // float output = 0;
+        // for (int i=0; i < hidden2; i++) {
+        //     float score = 0.0;
+        //     for (int j=0; j < hidden; j++) {
+        //         score += scores[j] * hiddenWeights2[i*hidden+j];
+        //     }
+        //     score = relu(score);
+        //     output += outputWeights[i] * score;
+        // }
+
+        vector<float> scores2(hidden2);
+        for (int i=0; i < hidden; i++) {
+            for (int j=0; j < hidden2; j++) {
+                scores2[j] += hiddenWeights2[i*hidden2+j] * scores[i];
+            }
+        }
+        for (int i=0; i < hidden2; i++) {
+            scores2[i] = relu(scores2[i]);
+        }
+
+        float output = 0;
+        for (int i=0; i < hidden2; i++) {
+            output += outputWeights[i] * scores2[i];
+        }
+
+        return fast_tanh(output);
+    }
+
+    virtual void learn(const vector<int> & indexes, float target) {
+        vector<float> scores(hidden);
+        for (auto & index : indexes) {
+            for (int i=0; i < hidden; i++) {
+                scores[i] += hiddenWeights[index*hidden+i];
+            }
+        }
+        for (int i=0; i < hidden; i++) {
+            scores[i] = relu2(scores[i]);
+        }
+
+        vector<float> scores2(hidden2);
+        for (int i=0; i < hidden; i++) {
+            for (int j=0; j < hidden2; j++) {
+                scores2[j] += hiddenWeights2[i*hidden2+j] * scores[i];
+            }
+        }
+        for (int i=0; i < hidden2; i++) {
+            scores2[i] = relu(scores2[i]);
+        }
+
+        float op = 0.0;
+        for (int i=0; i < hidden2; i++) {
+            op += outputWeights[i] * scores2[i];
+        }
+        op = fast_tanh(op);
+
+        float e = target - op;
+        float dop = e * dtanh(op);
+
+        vector<float> eh(hidden2);
+        for (int i=0; i < hidden2; i++) {
+            eh[i] = dop * outputWeights[i];
+        }
+
+        vector<float> dh(hidden2);
+        for (int i=0; i < hidden2; i++) {
+            dh[i] = eh[i] * drelu(scores2[i]);
+        }
+
+        vector<float> dh0(hidden);
+        for (int i=0; i < hidden; i++) {
+            for (int j=0; j < hidden2; j++) {
+                dh0[i] += dh[j] * hiddenWeights2[i*hidden2+j];
+            }
+            dh0[i] *= drelu2(scores[i]);
+        }
+
+        for (int i=0; i < hidden2; i++) {
+            outputMomentum[i] = mom * outputMomentum[i] + alpha * scores2[i] * dop;
+            outputWeights[i] += outputMomentum[i];
+        }
+
+        for (int i=0; i < hidden; i++) {
+            for (int j=0; j < hidden2; j++) {
+                hiddenMomentum2[i*hidden2+j] = mom * hiddenMomentum2[i*hidden2+j] + alpha * dh[j] * scores[i];
+                hiddenWeights2[i*hidden2+j] += hiddenMomentum2[i*hidden2+j];
+            }
+        }
+
+        for (auto & index : indexes) {
+            for (int i=0; i < hidden; i++) {
+                hiddenMomentum[index*hidden+i] = mom * hiddenMomentum[index*hidden+i] + alpha * dh0[i];
+                hiddenWeights[index*hidden+i] += hiddenMomentum[index*hidden+i];
+            }
+        }
+    }
+
+    virtual void learnRL(const vector<int> & indexes, float target) {
+        vector<float> scores(hidden);
+        for (auto & index : indexes) {
+            for (int i=0; i < hidden; i++) {
+                scores[i] += hiddenWeights[index*hidden+i];
+            }
+        }
+        for (int i=0; i < hidden; i++) {
+            scores[i] = relu2(scores[i]);
+        }
+
+        vector<float> scores2(hidden2);
+        for (int i=0; i < hidden; i++) {
+            for (int j=0; j < hidden2; j++) {
+                scores2[j] += hiddenWeights2[i*hidden2+j] * scores[i];
+            }
+        }
+        for (int i=0; i < hidden2; i++) {
+            scores2[i] = relu(scores2[i]);
+        }
+
+        float op = 0.0;
+        for (int i=0; i < hidden2; i++) {
+            op += outputWeights[i] * scores2[i];
+        }
+        op = fast_tanh(op);
+
+        float e = target - op;
+        float dop = e * dtanh(op);
+
+        vector<float> eh(hidden2);
+        for (int i=0; i < hidden2; i++) {
+            eh[i] = dop * outputWeights[i];
+        }
+
+        vector<float> dh(hidden2);
+        for (int i=0; i < hidden2; i++) {
+            dh[i] = eh[i] * drelu(scores2[i]);
+        }
+
+        vector<float> dh0(hidden);
+        for (int i=0; i < hidden; i++) {
+            for (int j=0; j < hidden2; j++) {
+                dh0[i] += dh[j] * hiddenWeights2[i*hidden2+j];
+            }
+            dh0[i] *= drelu2(scores[i]);
+        }
+
+        for (int i=0; i < hidden2; i++) {
+            float a = aOutputWeights[i] == 0 ? 1 : (abs(nOutputWeights[i]) / aOutputWeights[i]);
+            outputWeights[i] += 0.2 * a * scores2[i] * dop;
+            aOutputWeights[i] += abs(scores2[i] * dop);
+            nOutputWeights[i] += scores2[i] * dop;
+        }
+
+        for (int i=0; i < hidden; i++) {
+            for (int j=0; j < hidden2; j++) {
+                float a = aHiddenWeights2[i*hidden2+j] == 0 ? 1 : (abs(nHiddenWeights2[i*hidden2+j]) / aHiddenWeights2[i*hidden2+j]);
+                hiddenWeights2[i*hidden2+j] += 0.2 * a * scores[i] * dh[j];
+                aHiddenWeights2[i*hidden2+j] += abs(scores[i] * dh[j]);
+                nHiddenWeights2[i*hidden2+j] += scores[i] * dh[j];
+            }
+        }
+
+        for (auto & index : indexes) {
+            for (int i=0; i < hidden; i++) {
+                float a = aHiddenWeights[index*hidden+i] == 0 ? 1 : (abs(nHiddenWeights[index*hidden+i]) / aHiddenWeights[index*hidden+i]);
+                hiddenWeights[index*hidden+i] += 0.2 * a * dh0[i];
+                aHiddenWeights[index*hidden+i] += abs(dh0[i]);
+                nHiddenWeights[index*hidden+i] += dh0[i];
+            }
+        }
+    }
+
+    virtual void print(float a, float d, string name) {
+        float m = 0;
+        float sum = 0;
+        for (auto & i : hiddenWeights) {
+            if (abs(i) > m) m = abs(i);
+            int32_t s = (int32_t)round((d*(i+a)));
+            float x = (s/d)-a;
+            sum += x;
+        }
+        for (auto & i : hiddenWeights2) {
+            if (abs(i) > m) m = abs(i);
+            int32_t s = (int32_t)round((d*(i+a)));
+            float x = (s/d)-a;
+            sum += x;
+        }
+        for (auto & i : outputWeights) {
+            if (abs(i) > m) m = abs(i);
+            int32_t s = (int32_t)round((d*(i+a)));
+            float x = (s/d)-a;
+            sum += x;
+        }
+
+        stringstream ss;
+        for (auto & i : hiddenWeights) {
+            int32_t s = (int32_t)round(d*(i+a));
+            char a = (char)(s&255);
+            char b = (char)((s>>8)&255);
+            ss << b << a;
+        }
+        for (auto & i : hiddenWeights2) {
+            int32_t s = (int32_t)round(d*(i+a));
+            char a = (char)(s&255);
+            char b = (char)((s>>8)&255);
+            ss << b << a;
+        }
+        for (auto & i : outputWeights) {
+            int32_t s = (int32_t)round(d*(i+a));
+            char a = (char)(s&255);
+            char b = (char)((s>>8)&255);
+            ss << b << a;
+        }
+
+        cout << "max " << m << endl;
+        cout << "sum " << sum << endl;
+        ofstream plik; plik.open(name);
+        plik << ss.str();
+        plik.close();
+    }
+
+    float relu2(float x) {
+        if (x < 0) return 0.01f * x;
+        return x*x;
+    }
+
+    float drelu2(float x) {
+        if (x < 0) return 0.01f;
+        return 2 * sqrtf(x);
+    }
+};
+
+
 #endif // NETWORK_H

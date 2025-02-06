@@ -42,7 +42,7 @@ void SecondWindow::onNotation(string notation) {
 }
 
 void SecondWindow::onNotation2(string notation) {
-    ui->lineEdit_2->setText(QString::fromStdString(notation));
+    // ui->lineEdit_2->setText(QString::fromStdString(notation));
 }
 
 void SecondWindow::onGameStateChanged(bool inGame) {

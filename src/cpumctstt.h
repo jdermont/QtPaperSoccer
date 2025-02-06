@@ -616,6 +616,7 @@ public:
         maxLevel = 0;
         provenEnd = false;
         ccc = 0;
+        ss.clear();
 
         if (moves.size() == 0) {
             childs = generateMoves(-1);
@@ -666,8 +667,8 @@ public:
         float h = 0.5f + (moves[0]->score / (moves[0]->games==0?1:moves[0]->games)) / 2.0f;
         if (moves[0]->games == 0) h = 0.5f + (moves[0]->heuristic / (moves[0]->games==0?1:moves[0]->games)) / 2.0f;
         if (moves[0]->terminal) h = moves[0]->heuristic > 100 ? 1 : 0;
-        h = round(10000 * h) / 100.0f;        
-        ss << moves[0]->move << ": " << h << "%" << endl;
+        h = round(10000 * h) / 100.0f;
+        ss << "best move: " << moves[0]->move << ": " << h << "%" << endl;
         ss << "-------------------------------------------------" << endl;
 
         return moves[0];

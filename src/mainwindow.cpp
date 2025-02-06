@@ -22,12 +22,14 @@ MainWindow::MainWindow(QWidget *parent)
     settings.setValue("kurnikColors",kurnikColors);
     int hidden = settings.value("hidden", 96).toInt();
     settings.setValue("hidden",hidden);
-    QString netfile = settings.value("netfile","96_RL87").toString();
+    int hidden2 = settings.value("hidden2", 32).toInt();
+    settings.setValue("hidden2",hidden2);
+    QString netfile = settings.value("netfile","96_32_net").toString();
     settings.setValue("netfile",netfile);
     cpuParallel = new CpuMctsTTRParallel(poolSize);
     cpuParallel->moveLimit = moveLimit;
-    Network* network = new NetworkScrelu(1466,hidden);
-    network->load2(netfile.toStdString());
+    Network* network = new NetworkDeep(1466,hidden,hidden2);
+    network->load(netfile.toStdString());
     network->type = 2;
     cpuParallel->agent = network;
 
