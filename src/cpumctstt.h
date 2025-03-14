@@ -198,8 +198,8 @@ private:
         int childrenSize = 0;
         int childStart = -1;
 
-        bool alreadyBlocking = game->pitch.isCutOffFromOpponentGoal(player == ONE ? TWO : ONE);
-        bool alreadyBlocked = game->pitch.isCutOffFromOpponentGoal(player);
+        bool alreadyBlocking = true || game->pitch.isCutOffFromOpponentGoal(player == ONE ? TWO : ONE);
+        bool alreadyBlocked = true || game->pitch.isCutOffFromOpponentGoal(player);
 
         vertices.push_back(game->pitch.ball);
         talia.push_back(make_pair(game->pitch.ball, vector<Path>()));
