@@ -1066,6 +1066,22 @@ public:
         return edges;
     }
 
+    Edge getEdge(int i, int j) {
+        Point a = getPosition(i);
+        Point b = getPosition(j);
+        vector<Edge> edges = getEdges();
+        for (auto & edge : edges) {
+            if (edge.player == NONE) continue;
+            if (edge.a.x == a.x && edge.a.y == a.y && edge.b.x == b.x && edge.b.y == b.y) {
+                return edge;
+            }
+            if (edge.a.x == b.x && edge.a.y == b.y && edge.b.x == a.x && edge.b.y == a.y) {
+                return edge;
+            }
+        }
+        return Edge(Point(),Point());
+    }
+
     vector<Edge> getEdgesMirrored() {
         vector<Edge> edges;
         for (int i=1;i<size;i++) {

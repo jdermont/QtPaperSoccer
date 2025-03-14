@@ -7,6 +7,7 @@ void WorkerThread::run() {
     if (threads > 8) threads = 8;
     int time = settings.value("time", 1).toInt();
     if (time == 0) time = 1;
+    cpu->ss = std::stringstream();
     string move;
     if (game->pitch.isNextMoveGameover(cpu->getPlayer()==ONE?TWO:ONE)) {
         move = game->pitch.shortWinningMoveForPlayer(cpu->getPlayer());
@@ -16,7 +17,6 @@ void WorkerThread::run() {
         move = cpu->getBestMove(time * 1000000L, threads)->move;
         emit moveLogs(cpu->ss.str());
     }
-
 
     for (auto & c : move) {
         emit moveCalculated(c);

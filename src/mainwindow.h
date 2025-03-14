@@ -17,8 +17,8 @@
 
 #define LINE_WIDTH 2
 #define BOLD_LINE_WIDTH 3
-#define BALL_SIZE 6
-#define BIG_BALL_SIZE 10
+#define BALL_SIZE 8
+#define BIG_BALL_SIZE 14
 
 #include "game.h"
 #include "cpu.h"

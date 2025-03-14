@@ -52,17 +52,18 @@ void MainWindow::onBack() {
     }
     if (game->notation.back() == ',') {
         QSettings settings("qtpapersoccer.ini", QSettings::IniFormat);
+        bool needToConfirmMoves = settings.value("needToConfirmMoves", true).toBool();
         if (settings.value("computer",true).toBool() && game->currentPlayer == TWO) {
             game->undoMove();
             while (game->notation.size() > 0 && game->notation.back() != ',') {
                 game->undoMove();
             }
             if (game->notation.size() > 0) {
-                game->undoChangePlayer();
+                game->undoChangePlayer(needToConfirmMoves);
             }
             if (game->notation.empty()) calcMove(false);
         } else {
-            game->undoChangePlayer();
+            game->undoChangePlayer(needToConfirmMoves);
         }
     } else {
         game->undoMove();
@@ -98,17 +99,18 @@ void MainWindow::keyPressEvent(QKeyEvent *event) {
         }
         if (game->notation.back() == ',') {
             QSettings settings("qtpapersoccer.ini", QSettings::IniFormat);
+            bool needToConfirmMoves = settings.value("needToConfirmMoves", true).toBool();
             if (settings.value("computer",true).toBool() && game->currentPlayer == TWO) {
                 game->undoMove();
                 while (game->notation.size() > 0 && game->notation.back() != ',') {
                     game->undoMove();
                 }
                 if (game->notation.size() > 0) {
-                    game->undoChangePlayer();
+                    game->undoChangePlayer(needToConfirmMoves);
                 }
                 if (game->notation.empty()) calcMove(false);
             } else {
-                game->undoChangePlayer();
+                game->undoChangePlayer(needToConfirmMoves);
             }
         } else {
             game->undoMove();
@@ -179,6 +181,7 @@ void MainWindow::mouseReleaseEvent(QMouseEvent *event) {
                 }
             }
         }
+        repaint();
         return;
     }
     if (abs(p.x()-bP.x) <= 1 && abs(p.y()-bP.y) <= 1 && game->pitch.getNeighbour(p.x()-bP.x,p.y()-bP.y) != -1) {
@@ -195,6 +198,24 @@ void MainWindow::mouseReleaseEvent(QMouseEvent *event) {
             else game->makeMoveWithPlayer('3');
         }
         emit sendNotation(game->notation);
+        if (game->almost) {
+            QSettings settings("qtpapersoccer.ini", QSettings::IniFormat);
+            bool needToConfirmMoves = settings.value("needToConfirmMoves", true).toBool();
+            if (!needToConfirmMoves) {
+                game->confirm();
+                if (game->isOver()) {
+                    sendGameState(!game->isOver());
+                    emit sendWinner(game->getWinner() == humanPlayer ? 0 : 1);
+                } else {
+                    if (game->currentPlayer == ONE) {
+                        QSettings settings("qtpapersoccer.ini", QSettings::IniFormat);
+                        if (settings.value("computer",true).toBool()) {
+                            calcMove(false);
+                        }
+                    }
+                }
+            }
+        }
     }
     repaint();
 }
@@ -221,17 +242,23 @@ void MainWindow::paintEvent(QPaintEvent *event) {
     // paint stuff
     QPen white(QColor("#FFFFFF"), LINE_WIDTH, Qt::SolidLine, Qt::RoundCap);
     QPen red(QColor("#FF0000"), LINE_WIDTH, Qt::SolidLine, Qt::RoundCap);
+    QPen red2(QColor("#FF0000"), LINE_WIDTH, Qt::SolidLine, Qt::RoundCap);
     QPen gray(QColor("#D0D0D0"), LINE_WIDTH, Qt::SolidLine, Qt::RoundCap);
     QPen black(QColor("#000000"), LINE_WIDTH, Qt::SolidLine, Qt::RoundCap);
     QPen blue(QColor("#0000FF"), LINE_WIDTH, Qt::SolidLine, Qt::RoundCap);
+    QPen blue2(QColor("#0000FF"), LINE_WIDTH, Qt::SolidLine, Qt::RoundCap);
     QPen fieldLine(QColor("#CCCCEE"), LINE_WIDTH, Qt::SolidLine, Qt::RoundCap);
+    QPen fieldLine2(QColor("#CCCCEE"), LINE_WIDTH, Qt::SolidLine, Qt::RoundCap);
 
     if (kurnikColors) {
         white = QPen(QColor("#308048"), LINE_WIDTH, Qt::SolidLine, Qt::RoundCap);
         red = QPen(QColor("#F0F0F0"), LINE_WIDTH, Qt::SolidLine, Qt::RoundCap);
-        blue = QPen(QColor("#E0E0E0"), LINE_WIDTH, Qt::SolidLine, Qt::RoundCap);
+        blue = QPen(QColor("#F0F0F0"), LINE_WIDTH, Qt::SolidLine, Qt::RoundCap);
+        red2 = QPen(QColor("#F0F0F0"), LINE_WIDTH, Qt::SolidLine, Qt::RoundCap);
+        blue2 = QPen(QColor("#F07F7F"), LINE_WIDTH, Qt::SolidLine, Qt::RoundCap);
         black = QPen(QColor("#FFFFFF"), LINE_WIDTH, Qt::SolidLine, Qt::RoundCap);
-        fieldLine = QPen(QColor("#34844B"), LINE_WIDTH, Qt::SolidLine, Qt::RoundCap);
+        fieldLine = QPen(QColor("#308048"), LINE_WIDTH, Qt::SolidLine, Qt::RoundCap);
+        fieldLine2 = QPen(QColor("#70B070"), LINE_WIDTH, Qt::SolidLine, Qt::RoundCap); // #98C0A4
     }
 
     QPainter painter(this);
@@ -281,6 +308,17 @@ void MainWindow::paintEvent(QPaintEvent *event) {
     //     painter.drawLine(marginWidth+blocksize*a.x,marginHeight+blocksize*a.y,marginWidth+blocksize*b.x,marginHeight+blocksize*b.y);
     // }
 
+    if (kurnikColors) {
+        fieldLine2.setWidth(BALL_SIZE/4);
+        for (int x=1; x < 8; x++) {
+            for (int y=0; y < 11; y++) {
+                if ((y == 0 || y == 10) && x != 4) continue;
+                painter.setPen(fieldLine2);
+                painter.drawPoint(marginWidth+blocksize*x,marginHeight+blocksize*y);
+            }
+        }
+    }
+
     if (flip) {
         for (auto & edge : pitch.getEdgesMirrored()) {
             if (edge.player == NONE) {
@@ -305,16 +343,33 @@ void MainWindow::paintEvent(QPaintEvent *event) {
         }
     }
 
-
-
-       // red.setWidth(BOLD_LINE_WIDTH);
-       // blue.setWidth(BOLD_LINE_WIDTH);
+       red.setWidth(BOLD_LINE_WIDTH);
+       blue.setWidth(BOLD_LINE_WIDTH);
 
        // if (game->currentPlayer == ONE) {
        //     painter.setPen(red);
        // } else {
        //     painter.setPen(blue);
        // }
+
+       int p = -1;
+       for (int i=game->paths.size()-1; i >= 0; i--) {
+           auto& path = game->paths[i];
+           if (p == -1) {
+               p = pitch.getEdge(path.a,path.b).player;
+           } else {
+               if (pitch.getEdge(path.a,path.b).player != p) break;
+           }
+           if (p == TWO) {
+               painter.setPen(red);
+           } else {
+               painter.setPen(blue);
+           }
+           Point a = pitch.getPosition(path.a);
+           Point b = pitch.getPosition(path.b);
+           Edge edge = Edge(a,b);
+           painter.drawLine(marginWidth+blocksize*edge.a.x,marginHeight+blocksize*edge.a.y,marginWidth+blocksize*edge.b.x,marginHeight+blocksize*edge.b.y);
+       }
 
        // for (auto& path : game->paths) {
        //     Point a = pitch.getPosition(path.a);
@@ -324,14 +379,19 @@ void MainWindow::paintEvent(QPaintEvent *event) {
        // }
 
     if (game->almost) {
-        red.setWidth(BIG_BALL_SIZE);
-        blue.setWidth(BIG_BALL_SIZE);
+           red.setWidth(BIG_BALL_SIZE);
+           blue.setWidth(BIG_BALL_SIZE);
+           red2.setWidth(BIG_BALL_SIZE);
+           blue2.setWidth(BIG_BALL_SIZE);
         black.setWidth(BIG_BALL_SIZE);
     } else {
         red.setWidth(BALL_SIZE);
         blue.setWidth(BALL_SIZE);
+        red2.setWidth(BALL_SIZE);
+        blue2.setWidth(BALL_SIZE);
         black.setWidth(BALL_SIZE);
     }
+
 
     // painter.setPen(gray);
     // for (int i=0;i<pitch.size;i++) {
@@ -339,7 +399,7 @@ void MainWindow::paintEvent(QPaintEvent *event) {
     //     painter.drawText(marginWidth+2+blocksize*p.x,-2+marginHeight+blocksize*p.y,QString::number(i));
     // }
 
-    painter.setPen(game->currentPlayer==TWO?red:blue);
+    painter.setPen(game->currentPlayer==TWO?red2:blue2);
     Point ball = !flip ? pitch.getPosition(pitch.ball) : pitch.getPosition(pitch.getMirroredIndex(pitch.ball));
     painter.drawPoint(marginWidth+blocksize*ball.x,marginHeight+blocksize*ball.y);
 

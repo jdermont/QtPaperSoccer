@@ -37,6 +37,8 @@ public slots:
     void onThreadsTextChange(const QString & str);
     void onWinner(int winner);
     void onStateChanged(int state);
+    void onStateChanged2(int state);
+    void onStateChanged3(int state);
 
 signals:
     void startClicked(string notation);

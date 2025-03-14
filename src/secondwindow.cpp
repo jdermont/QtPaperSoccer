@@ -9,15 +9,21 @@ SecondWindow::SecondWindow(QWidget *parent) :
     int time = settings.value("time", 1).toInt();
     int threads = settings.value("threads", 4).toInt();
     bool comp = settings.value("computer",true).toBool();
+    bool kurnikColors = settings.value("kurnikColors", false).toBool();
+    bool needToConfirmMoves = settings.value("needToConfirmMoves", true).toBool();
     ui->timeEdit->setValidator(new QIntValidator(1, 600, this));
     ui->timeEdit->setText(QString::number(time));
     ui->threadEdit->setValidator(new QIntValidator(1, 8, this));
     ui->threadEdit->setText(QString::number(threads));
     ui->checkBox->setChecked(comp);
+    ui->checkBox_2->setChecked(kurnikColors);
+    ui->checkBox_3->setChecked(needToConfirmMoves);
     connect(ui->startBtn, SIGNAL (released()),this, SLOT (onStartBtnClicked()));
     connect(ui->timeEdit, SIGNAL (textChanged(const QString &)),this, SLOT (onTimeTextChanged(const QString &)));
     connect(ui->threadEdit, SIGNAL (textChanged(const QString &)),this, SLOT (onThreadsTextChange(const QString &)));
     connect(ui->checkBox, SIGNAL (stateChanged(int)),this, SLOT (onStateChanged(int)));
+    connect(ui->checkBox_2, SIGNAL (stateChanged(int)),this, SLOT (onStateChanged2(int)));
+    connect(ui->checkBox_3, SIGNAL (stateChanged(int)),this, SLOT (onStateChanged3(int)));
 }
 
 SecondWindow::~SecondWindow()
@@ -68,4 +74,16 @@ void SecondWindow::onStateChanged(int state) {
     bool checked = state != 0;
     QSettings settings("qtpapersoccer.ini", QSettings::IniFormat);
     settings.setValue("computer", checked);
+}
+
+void SecondWindow::onStateChanged2(int state) {
+    bool checked = state != 0;
+    QSettings settings("qtpapersoccer.ini", QSettings::IniFormat);
+    settings.setValue("kurnikColors", checked);
+}
+
+void SecondWindow::onStateChanged3(int state) {
+    bool checked = state != 0;
+    QSettings settings("qtpapersoccer.ini", QSettings::IniFormat);
+    settings.setValue("needToConfirmMoves", checked);
 }

@@ -203,13 +203,29 @@ public:
         almost = false;
     }
 
-    void undoChangePlayer() {
+    void undoChangePlayer(bool needToConfirmMoves) {
         if (notation.size() > 0 && notation.back() == ',') {
             changePlayer();
             notation.pop_back();
             rounds--;
         }
-        almost = true;
+        if (needToConfirmMoves) {
+            almost = true;
+        } else {
+            while (notation.size() > 0 && notation.back() != ',') {
+                if (paths.size() > 0) {
+                    Path path = paths[paths.size()-1];
+                    paths.pop_back();
+                    pitch.removeEdge(path.a,path.b);
+                    pitch.ball = path.a;
+                    notation.pop_back();
+                }
+            }
+            if (notation.size() > 0 && notation.back() == ',') {
+                // notation.pop_back();
+                // rounds--;
+            }
+        }
     }
 
     int nextNode(int index, char c) {
