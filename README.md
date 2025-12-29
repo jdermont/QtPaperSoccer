@@ -47,7 +47,7 @@ If you want to analyze a position for few minutes, you should increase the poolS
 
 # AI
 
-The AI uses neural network for board evaluation. It's rather small, with one-hots inputs, value network. The search is [Unbounded best-first minimax](https://arxiv.org/abs/2012.10700) with UCT component for exploration. This is more like mcts with evaluation from neural network instead from semi-random games.
+The AI uses neural network for board evaluation. It's rather small, with one-hots inputs, value network. The search is [Unbounded best-first minimax](https://arxiv.org/abs/2012.10700) with UCT component for exploration. This is more like mcts with evaluation from neural network instead from semi-random games. Little description on the inputs is [here](https://github.com/jdermont/playground-kvhfh5iv/blob/master/papersoccer.md).
 
 
 # Ya Paper Soccer
