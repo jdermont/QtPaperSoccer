@@ -52,7 +52,7 @@ private:
 
     player_t humanPlayer = ONE;
     Game *game = new Game();
-    CpuMctsTTRParallel* cpuParallel;
+    CpuMctsTTRParallel0* cpuParallel;
 
     double blocksize;
     double marginWidth;

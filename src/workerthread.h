@@ -13,7 +13,7 @@ class WorkerThread : public QThread
 {
     Q_OBJECT
 public:
-    WorkerThread(Game *game, CpuMctsTTRParallel* cpu) : cpu(cpu) {
+    WorkerThread(Game *game, CpuMctsTTRParallel0* cpu) : cpu(cpu) {
         this->game.reset(new Game(*game));
         cpu->setGame(this->game.get());
     }
@@ -21,7 +21,7 @@ public:
 
 private:
     shared_ptr<Game> game;
-    CpuMctsTTRParallel* cpu;
+    CpuMctsTTRParallel0* cpu;
 
 signals:
     void moveCalculated(char c);

@@ -113,13 +113,35 @@ public:
     Path(const Path& that) : a(that.a), b(that.b), hashCode(that.hashCode) {}
 };
 
-static vector<Path> ALL_EDGES;
-static vector<int> ALL_EDGES_INDEXES;
-static vector<int> BALLS_MIRRORED;
-static vector<int> EDGES_MIRRORED;
+// static vector<Path> ALL_EDGES;
+// static vector<int> ALL_EDGES_INDEXES;
+// static vector<int> BALLS_MIRRORED;
+// static vector<int> EDGES_MIRRORED;
 
 class Pitch {
 public:
+    inline static vector<Path> ALL_EDGES;
+    inline static vector<int> ALL_EDGES_INDEXES;
+    inline static vector<int> BALLS_MIRRORED;
+    inline static vector<int> EDGES_MIRRORED;
+    inline static vector<int> SQUARES = {
+        0,1,2,3,4,5,6,7,8,9,
+        11,12,13,14,15,16,17,18,19,20,
+        22,23,24,25,26,27,28,20,30,31,
+        33,34,35,36,37,38,39,40,41,42,
+        44,45,46,47,48,49,50,51,52,53,
+        55,56,57,58,59,60,61,62,63,64,
+        66,67,68,69,70,71,72,73,74,75,
+        77,78,79,80,81,82,83,84,85,86,
+    };
+    inline static vector<vector<int>> NODES_INDEXES;
+    inline static vector<vector<int>> NODES_EDGES;
+    inline static vector<vector<int>> NODES_EDGES2;
+    inline static vector<int> NODES = {
+        12,13,14,15,16,17,18,19,20,23,24,25,26,27,28,29,30,31,34,35,36,37,38,39,40,41,42,44,45,46,47,48,49,50,
+        51,52,53,54,56,57,58,59,60,61,62,63,64,67,68,69,70,71,72,73,74,75,78,79,80,81,82,83,84,85,86
+    };
+
     int ball;
     int size,width,height;
 
@@ -229,6 +251,21 @@ public:
     }
 
     void GENERATE_ALL_EDGES() {
+        // ALL_EDGES = getAllEdges();
+        // ALL_EDGES_INDEXES.resize(11025);
+        // for (int i=0; i < 316; i++) {
+        //     ALL_EDGES_INDEXES[105 * ALL_EDGES[i].a + ALL_EDGES[i].b] = i;
+        //     ALL_EDGES_INDEXES[105 * ALL_EDGES[i].b + ALL_EDGES[i].a] = i;
+        // }
+        // BALLS_MIRRORED.resize(105);
+        // for (int i=0; i < 105; i++) {
+        //     BALLS_MIRRORED[i] = getMirroredIndex(i);
+        // }
+        // EDGES_MIRRORED.resize(316);
+        // for (int i=0; i < 316; i++) {
+        //     EDGES_MIRRORED[i] = getMirroredPathIndex(i);
+        // }
+
         ALL_EDGES = getAllEdges();
         ALL_EDGES_INDEXES.resize(11025);
         for (int i=0; i < 316; i++) {
@@ -242,6 +279,34 @@ public:
         EDGES_MIRRORED.resize(316);
         for (int i=0; i < 316; i++) {
             EDGES_MIRRORED[i] = getMirroredPathIndex(i);
+        }
+        NODES_INDEXES.resize(80);
+        for (int i=0; i < 80; i++) {
+            NODES_INDEXES[i].push_back(SQUARES[i]);
+            NODES_INDEXES[i].push_back(SQUARES[i]+1);
+            NODES_INDEXES[i].push_back(SQUARES[i]+11);
+            NODES_INDEXES[i].push_back(SQUARES[i]+12);
+        }
+        NODES_EDGES.resize(105);
+        NODES_EDGES2.resize(105);
+        for (int i=0; i < 105; i++) {
+            NODES_EDGES[i].push_back(getNeighbour(i,0,1)); // UP
+            NODES_EDGES[i].push_back(getNeighbour(i,1,1)); // UPRIGHT
+            NODES_EDGES[i].push_back(getNeighbour(i,1,0)); // RIGHT
+            NODES_EDGES[i].push_back(getNeighbour(i,1,-1)); // DOWNRIGHT
+            NODES_EDGES[i].push_back(getNeighbour(i,0,-1)); // DOWN
+            NODES_EDGES[i].push_back(getNeighbour(i,-1,-1)); // DOWNLEFT
+            NODES_EDGES[i].push_back(getNeighbour(i,-1,0)); // LEFT
+            NODES_EDGES[i].push_back(getNeighbour(i,-1,1)); // UPLEFT
+
+            NODES_EDGES2[i].push_back(getNeighbour(i,0,-1));
+            NODES_EDGES2[i].push_back(getNeighbour(i,-1,-1));
+            NODES_EDGES2[i].push_back(getNeighbour(i,-1,0));
+            NODES_EDGES2[i].push_back(getNeighbour(i,-1,1));
+            NODES_EDGES2[i].push_back(getNeighbour(i,0,1));
+            NODES_EDGES2[i].push_back(getNeighbour(i,1,1));
+            NODES_EDGES2[i].push_back(getNeighbour(i,1,0));
+            NODES_EDGES2[i].push_back(getNeighbour(i,1,-1));
         }
     }
 
@@ -1027,6 +1092,24 @@ public:
                 edges.push_back(316+10*i+distances[BALLS_MIRRORED[i]]);
             }
             edges.push_back(1366+BALLS_MIRRORED[ball]);
+        }
+        return edges;
+    }
+
+    vector<int> getTuplesEdgesBase6(player_t player) {
+        vector<int> edges; edges.reserve(316);
+        if (player == ONE) {
+            for (int i=0; i < 316; i++) {
+                if (existsEdge(ALL_EDGES[i].a,ALL_EDGES[i].b)) {
+                    edges.push_back(i);
+                }
+            }
+        } else {
+            for (int i=0; i < 316; i++) {
+                if (existsEdge(ALL_EDGES[i].a,ALL_EDGES[i].b)) {
+                    edges.push_back(EDGES_MIRRORED[i]);
+                }
+            }
         }
         return edges;
     }

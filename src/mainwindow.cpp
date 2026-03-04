@@ -20,17 +20,21 @@ MainWindow::MainWindow(QWidget *parent)
     settings.setValue("moveLimit",moveLimit);
     bool kurnikColors = settings.value("kurnikColors", false).toBool();
     settings.setValue("kurnikColors",kurnikColors);
-    int hidden = settings.value("hidden", 96).toInt();
+    int hidden = settings.value("hidden", 256).toInt();
     settings.setValue("hidden",hidden);
-    int hidden2 = settings.value("hidden2", 32).toInt();
+    int hidden2 = settings.value("hidden2", 16).toInt();
     settings.setValue("hidden2",hidden2);
-    QString netfile = settings.value("netfile","96_32_net").toString();
+    QString netfile = settings.value("netfile","256_16_net3").toString();
     settings.setValue("netfile",netfile);
-    cpuParallel = new CpuMctsTTRParallel(poolSize);
+    cpuParallel = new CpuMctsTTRParallel0(poolSize);
     cpuParallel->moveLimit = moveLimit;
-    Network* network = new NetworkDeep(1466,hidden,hidden2);
+    // Network* network = new NetworkDeep(1466,hidden,hidden2);
+    // network->load(netfile.toStdString());
+    // network->type = 2;
+    Network* network = new NetworkDeep2Cached2(6301,hidden,hidden2);
     network->load(netfile.toStdString());
-    network->type = 2;
+    ((NetworkDeep2Cached2*)network)->generateCache();
+    network->type = 6;
     cpuParallel->agent = network;
 
     qRegisterMetaType<string>("string");
@@ -138,23 +142,6 @@ void MainWindow::keyPressEvent(QKeyEvent *event) {
         return;
     }
     if (game->isOver()) return;
-    if (event->key() == Qt::Key_Q) {
-        if (game->currentPlayer == ONE || false) {
-            Network network(435,320);
-            network.loadCheckpoint("RL1");
-            network.type = 1;
-            CpuMctsTTR3 cpu(1<<21); cpu.setGame(game); cpu.setPlayer(game->currentPlayer); cpu.agent = &network;
-            auto move = cpu.getBestMove(100 * 1000, true);
-            cout << "games " << cpu.games << ", maxLevel: " << cpu.maxLevel << endl;
-            cout << move->score / move->games << " ::: " << move->heuristic << endl;
-            game->makeMove(move->move,game->currentPlayer);
-        } else {
-            MctsCpu cpu; cpu.setGame(game); cpu.setPlayer(game->currentPlayer);
-            auto move = cpu.getBestMove(500 * 1000);
-            game->makeMove(move->move,game->currentPlayer);
-            delete move;
-        }
-    }
     repaint();
 }
 
@@ -255,7 +242,7 @@ void MainWindow::paintEvent(QPaintEvent *event) {
         red = QPen(QColor("#F0F0F0"), LINE_WIDTH, Qt::SolidLine, Qt::RoundCap);
         blue = QPen(QColor("#F0F0F0"), LINE_WIDTH, Qt::SolidLine, Qt::RoundCap);
         red2 = QPen(QColor("#F0F0F0"), LINE_WIDTH, Qt::SolidLine, Qt::RoundCap);
-        blue2 = QPen(QColor("#F07F7F"), LINE_WIDTH, Qt::SolidLine, Qt::RoundCap);
+        blue2 = QPen(QColor("#F0F0F0"), LINE_WIDTH, Qt::SolidLine, Qt::RoundCap);
         black = QPen(QColor("#FFFFFF"), LINE_WIDTH, Qt::SolidLine, Qt::RoundCap);
         fieldLine = QPen(QColor("#308048"), LINE_WIDTH, Qt::SolidLine, Qt::RoundCap);
         fieldLine2 = QPen(QColor("#70B070"), LINE_WIDTH, Qt::SolidLine, Qt::RoundCap); // #98C0A4
@@ -426,6 +413,12 @@ void MainWindow::paintEvent(QPaintEvent *event) {
 
     black.setWidth(LINE_WIDTH);
     painter.setPen(black);
+
+    if (kurnikColors && game->started) {
+        painter.setPen(black);
+        if (game->currentPlayer == ONE) painter.drawText(marginWidth+2+blocksize*6,-2+marginHeight+(-blocksize/2),"o");
+        else painter.drawText(marginWidth+2+blocksize*6,-2+marginHeight+blocksize*11,"o");
+    }
 }
 
 void MainWindow::onMoveCalculated(char c) {

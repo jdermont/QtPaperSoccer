@@ -68,6 +68,10 @@ public:
         return pitch.getTuplesEdgesBase4(currentPlayer == ONE ? TWO : ONE);
     }
 
+    vector<int> getTuplesEdgesBase6() {
+        return pitch.getTuplesEdgesBase6(currentPlayer == ONE ? TWO : ONE);
+    }
+
     vector<int> getLegalActions() {
         vector<int> actions; actions.reserve(8);
         for (int i=0; i < 8; i++) {
