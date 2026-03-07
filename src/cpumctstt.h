@@ -757,7 +757,11 @@ public:
         //                cout << "maxLevel: " << maxLevel << endl;
 
         for (auto & m : moves) {
-            ss << m->move << ": " << m->score/m->games << " (" << m->heuristic << ") " << m->games << endl;
+            float h = 0.5f + (m->score / (m->games==0?1:m->games)) / 2.0f;
+            if (m->games == 0) h = 0.5f + (m->heuristic / (m->games==0?1:m->games)) / 2.0f;
+            if (m->terminal) h = m->heuristic > 100 ? 1 : 0;
+            h = round(10000 * h) / 100.0f;
+            ss << m->move << ": " << h << "%" << endl;
         }
         // cout << "games: " << games << endl;
         // cout << "maxLevel: " << maxLevel << endl;

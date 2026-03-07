@@ -2139,7 +2139,8 @@ public:
     }
 
     virtual float getScoreDiff(const vector<int> & indexesBase, const vector<int> & indexes, int id) {
-        vector<float> scores(hidden);
+        static thread_local vector<float> scores(hidden);
+        memset(&scores[0],0,sizeof(float)*hidden);
         for (auto & index : indexesBase) {
             for (int i=0; i < hidden; i++) {
                 scores[i] -= hiddenWeights[index*hidden+i];
