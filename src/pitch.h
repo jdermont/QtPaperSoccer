@@ -150,6 +150,14 @@ public:
 
     vector<vector<int>> matrixNeighbours;
 
+    typedef unsigned __int128 u128;
+    static constexpr int DIR_OFFSET[8] = {-14, -13, -12, -1, 1, 12, 13, 14};
+    inline static vector<int> CELL, CELL_NODE;
+    inline static vector<int8_t> DIR;
+    inline static u128 ADJ_DIR[8] = {};
+    inline static u128 NODE_CELLS = 0;
+    u128 freeDir[8] = {};
+
     explicit Pitch(int width, int height, bool halfLine = false) : width(width), height(height) {
         int w = width + 1;
         int h = height + 1;
@@ -173,6 +181,21 @@ public:
         matrix[(wh + 3) * size + wh + 3] = ((width / 2 - 1) << 8) + h;
         matrix[(wh + 4) * size + wh + 4] = ((width / 2) << 8) + h;
         matrix[(wh + 5) * size + wh + 5] = ((width / 2 + 1) << 8) + h;
+
+        if (CELL.empty()) {
+            CELL.assign(size, 0);
+            CELL_NODE.assign(128, -1);
+            DIR.assign(size * size, -1);
+            for (int i = 0; i < size; i++) {
+                CELL[i] = 13 * getPosition(i).x + getPosition(i).y + 1;
+                CELL_NODE[CELL[i]] = i;
+            }
+            for (int a = 0; a < size; a++)
+                for (int b = 0; b < size; b++)
+                    for (int k = 0; a != b && k < 8; k++)
+                        if (CELL[b] - CELL[a] == DIR_OFFSET[k] && abs(getPosition(b).x - getPosition(a).x) <= 1
+                            && abs(getPosition(b).y - getPosition(a).y) <= 1) DIR[a * size + b] = k;
+        }
 
         //    matrix[(wh)*size+wh] = ((width/2)<<8) + 0xFF;
         //    matrix[(wh+1)*size+wh+1] = ((width/2+1)<<8) + h;
@@ -246,6 +269,14 @@ public:
         matrixNodes[wh + 4]--;
         matrixNodes[wh + 4]--;
 
+        for (int a = 0; a < size; a++) {
+            for (int v : matrixNeighbours[a]) {
+                if (NODE_CELLS == 0) ADJ_DIR[DIR[a * size + v]] |= (u128)1 << CELL[a];
+                if (matrix[a * size + v] == 1) freeDir[DIR[a * size + v]] |= (u128)1 << CELL[a];
+            }
+        }
+        if (NODE_CELLS == 0) for (int a = 0; a < size; a++) NODE_CELLS |= (u128)1 << CELL[a];
+
         // ball in center
         ball = width / 2 * h + h / 2;
     }
@@ -318,6 +349,7 @@ public:
         this->matrix = pitch.matrix;
         this->matrixNodes = pitch.matrixNodes;
         this->matrixNeighbours = pitch.matrixNeighbours;
+        copy(begin(pitch.freeDir), end(pitch.freeDir), freeDir);
     }
 
     void addEdge(int a, int b, int c = NONE) {
@@ -329,6 +361,11 @@ public:
         }
         matrixNodes[a]--;
         matrixNodes[b]--;
+        int k = DIR[a * size + b];
+        if (k >= 0) {
+            freeDir[k] &= ~((u128)1 << CELL[a]);
+            freeDir[7 - k] &= ~((u128)1 << CELL[b]);
+        }
     }
 
     void removeEdge(int a, int b) {
@@ -336,6 +373,11 @@ public:
         matrix[b * size + a] = 1;
         matrixNodes[a]++;
         matrixNodes[b]++;
+        int k = DIR[a * size + b];
+        if (k >= 0) {
+            freeDir[k] |= (u128)1 << CELL[a];
+            freeDir[7 - k] |= (u128)1 << CELL[b];
+        }
     }
 
     void fillFreeNeighbours(vector<int> &ns, int index) {
@@ -851,6 +893,36 @@ public:
         }
     }
 
+    void calculateDistancesBits(int source, int *distances, int cap) const {
+        u128 fresh = NODE_CELLS;
+        for (int k = 0; k < 8; k++) fresh &= freeDir[k] | ~ADJ_DIR[k];
+        const u128 bounce = NODE_CELLS & ~fresh;
+        fill(distances, distances + size, cap);
+        u128 visited = (u128)1 << CELL[source], seeds = visited;
+        for (int level = 1; level < cap && seeds != 0; level++) {
+            u128 all = seeds, frontier = seeds & bounce;
+            while (frontier != 0) {
+                frontier = freeNeighbours(frontier) & ~visited;
+                visited |= frontier;
+                all |= frontier;
+                frontier &= bounce;
+            }
+            for (u128 m = all; m != 0; m &= m - 1) distances[CELL_NODE[ctz128(m)]] = level;
+            seeds = freeNeighbours(all & fresh) & ~visited;
+            visited |= seeds;
+        }
+    }
+
+    u128 freeNeighbours(u128 x) const {
+        return ((x & freeDir[0]) >> 14) | ((x & freeDir[1]) >> 13) | ((x & freeDir[2]) >> 12) | ((x & freeDir[3]) >> 1)
+             | ((x & freeDir[4]) << 1) | ((x & freeDir[5]) << 12) | ((x & freeDir[6]) << 13) | ((x & freeDir[7]) << 14);
+    }
+
+    static int ctz128(u128 x) {
+        uint64_t lo = (uint64_t)x;
+        return lo != 0 ? __builtin_ctzll(lo) : 64 + __builtin_ctzll((uint64_t)(x >> 64));
+    }
+
     uint64_t getHash() {
         uint64_t hash = 0L;
         for (int i = 1; i < size; i++) {
@@ -959,7 +1031,7 @@ public:
 
         vector<int> edges; edges.reserve(316);
         vector<int> distances(105,9);
-        calculateDistances(ball,distances);
+        calculateDistancesBits(ball,distances.data(),9);
         int n = player == ONE ? 0 : 435;
         for (int i=0; i < 316; i++) {
             if (existsEdge(ALL_EDGES[i].a,ALL_EDGES[i].b)) {
@@ -1027,7 +1099,7 @@ public:
     vector<int> getTuplesEdges3(player_t player) {
         vector<int> edges; edges.reserve(316);
         vector<int> distances(105,9);
-        calculateDistances(ball,distances);
+        calculateDistancesBits(ball,distances.data(),9);
         if (player == ONE) {
             for (int i=0; i < 316; i++) {
                 if (existsEdge(ALL_EDGES[i].a,ALL_EDGES[i].b)) {
@@ -1071,7 +1143,7 @@ public:
     vector<int> getTuplesEdges4(player_t player) {
         vector<int> edges; edges.reserve(316);
         vector<int> distances(105,9);
-        calculateDistances(ball,distances);
+        calculateDistancesBits(ball,distances.data(),9);
         if (player == ONE) {
             for (int i=0; i < 316; i++) {
                 if (existsEdge(ALL_EDGES[i].a,ALL_EDGES[i].b)) {

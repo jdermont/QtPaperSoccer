@@ -24,7 +24,6 @@ HEADERS += \
     network.h \
     pitch.h \
     random.h \
-    rl.h \
     secondwindow.h \
     utils.h \
     workerthread.h
