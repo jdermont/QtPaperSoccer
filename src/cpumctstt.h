@@ -328,7 +328,7 @@ private:
                                         }
                                         tsDiff.push_back(Pitch::ALL_EDGES_INDEXES[105*t+n]);
                                         vector<int> distances(105,9);
-                                        game->pitch.calculateDistances(game->pitch.ball,distances);
+                                        game->pitch.calculateDistancesBits(game->pitch.ball,distances.data(),9);
                                         tsDiff.push_back(316+distances[100]);
                                         tsDiff.push_back(316+10+distances[103]);
                                         tsDiff.push_back(336+n);
@@ -338,7 +338,7 @@ private:
                                         }
                                         tsDiff.push_back(Pitch::EDGES_MIRRORED[Pitch::ALL_EDGES_INDEXES[105*t+n]]);
                                         vector<int> distances(105,9);
-                                        game->pitch.calculateDistances(game->pitch.ball,distances);
+                                        game->pitch.calculateDistancesBits(game->pitch.ball,distances.data(),9);
                                         tsDiff.push_back(316+distances[103]);
                                         tsDiff.push_back(316+10+distances[100]);
                                         tsDiff.push_back(336+Pitch::BALLS_MIRRORED[n]);
@@ -350,7 +350,7 @@ private:
                                         }
                                         tsDiff.push_back(Pitch::ALL_EDGES_INDEXES[105*t+n]);
                                         vector<int> distances(105,9);
-                                        game->pitch.calculateDistances2(game->pitch.ball,distances);
+                                        game->pitch.calculateDistancesBits(game->pitch.ball,distances.data(),9);
                                         for (int i=0; i < 105; i++) {
                                             tsDiff.push_back(316+10*i+distances[i]);
                                         }
@@ -361,7 +361,7 @@ private:
                                         }
                                         tsDiff.push_back(Pitch::EDGES_MIRRORED[Pitch::ALL_EDGES_INDEXES[105*t+n]]);
                                         vector<int> distances(105,9);
-                                        game->pitch.calculateDistances2(game->pitch.ball,distances);
+                                        game->pitch.calculateDistancesBits(game->pitch.ball,distances.data(),9);
                                         for (int i=0; i < 105; i++) {
                                             tsDiff.push_back(316+10*i+distances[Pitch::BALLS_MIRRORED[i]]);
                                         }
@@ -374,7 +374,7 @@ private:
                                         }
                                         tsDiff.push_back(Pitch::ALL_EDGES_INDEXES[105*t+n]);
                                         vector<int> distances(105,7);
-                                        game->pitch.calculateDistances2(game->pitch.ball,distances);
+                                        game->pitch.calculateDistancesBits(game->pitch.ball,distances.data(),7);
                                         distances[game->pitch.ball] = 0;
                                         for (int i=0; i < 105; i++) {
                                             int t = distances[i];
@@ -387,7 +387,7 @@ private:
                                         }
                                         tsDiff.push_back(Pitch::EDGES_MIRRORED[Pitch::ALL_EDGES_INDEXES[105*t+n]]);
                                         vector<int> distances(105,7);
-                                        game->pitch.calculateDistances2(game->pitch.ball,distances);
+                                        game->pitch.calculateDistancesBits(game->pitch.ball,distances.data(),7);
                                         distances[game->pitch.ball] = 0;
                                         for (int i=0; i < 105; i++) {
                                             int t = distances[Pitch::BALLS_MIRRORED[i]];
@@ -402,7 +402,7 @@ private:
                                         }
                                         tsDiff.push_back(Pitch::ALL_EDGES_INDEXES[105*t+n]);
                                         vector<int> distances(105,7);
-                                        game->pitch.calculateDistances2(game->pitch.ball,distances);
+                                        game->pitch.calculateDistancesBits(game->pitch.ball,distances.data(),7);
                                         distances[game->pitch.ball] = 0;
                                         for (int i=0; i < 105; i++) {
                                             int t = distances[i];
@@ -416,7 +416,7 @@ private:
                                         }
                                         tsDiff.push_back(Pitch::EDGES_MIRRORED[Pitch::ALL_EDGES_INDEXES[105*t+n]]);
                                         vector<int> distances(105,7);
-                                        game->pitch.calculateDistances2(game->pitch.ball,distances);
+                                        game->pitch.calculateDistancesBits(game->pitch.ball,distances.data(),7);
                                         distances[game->pitch.ball] = 0;
                                         for (int i=0; i < 105; i++) {
                                             int t = distances[Pitch::BALLS_MIRRORED[i]];
@@ -910,7 +910,7 @@ private:
                                         }
                                         tsDiff.push_back(Pitch::ALL_EDGES_INDEXES[105*t+n]);
                                         vector<int> distances(105,9);
-                                        game->pitch.calculateDistances(game->pitch.ball,distances);
+                                        game->pitch.calculateDistancesBits(game->pitch.ball,distances.data(),9);
                                         tsDiff.push_back(316+distances[100]);
                                         tsDiff.push_back(316+10+distances[103]);
                                         tsDiff.push_back(336+n);
@@ -920,7 +920,7 @@ private:
                                         }
                                         tsDiff.push_back(Pitch::EDGES_MIRRORED[Pitch::ALL_EDGES_INDEXES[105*t+n]]);
                                         vector<int> distances(105,9);
-                                        game->pitch.calculateDistances(game->pitch.ball,distances);
+                                        game->pitch.calculateDistancesBits(game->pitch.ball,distances.data(),9);
                                         tsDiff.push_back(316+distances[103]);
                                         tsDiff.push_back(316+10+distances[100]);
                                         tsDiff.push_back(336+Pitch::BALLS_MIRRORED[n]);
@@ -932,7 +932,7 @@ private:
                                         }
                                         tsDiff.push_back(Pitch::ALL_EDGES_INDEXES[105*t+n]);
                                         vector<int> distances(105,9);
-                                        game->pitch.calculateDistances2(game->pitch.ball,distances);
+                                        game->pitch.calculateDistancesBits(game->pitch.ball,distances.data(),9);
                                         for (int i=0; i < 105; i++) {
                                             tsDiff.push_back(316+10*i+distances[i]);
                                         }
@@ -943,7 +943,7 @@ private:
                                         }
                                         tsDiff.push_back(Pitch::EDGES_MIRRORED[Pitch::ALL_EDGES_INDEXES[105*t+n]]);
                                         vector<int> distances(105,9);
-                                        game->pitch.calculateDistances2(game->pitch.ball,distances);
+                                        game->pitch.calculateDistancesBits(game->pitch.ball,distances.data(),9);
                                         for (int i=0; i < 105; i++) {
                                             tsDiff.push_back(316+10*i+distances[Pitch::BALLS_MIRRORED[i]]);
                                         }
@@ -956,7 +956,7 @@ private:
                                         }
                                         tsDiff.push_back(Pitch::ALL_EDGES_INDEXES[105*t+n]);
                                         vector<int> distances(105,7);
-                                        game->pitch.calculateDistances2(game->pitch.ball,distances);
+                                        game->pitch.calculateDistancesBits(game->pitch.ball,distances.data(),7);
                                         distances[game->pitch.ball] = 0;
                                         for (int i=0; i < 105; i++) {
                                             int t = distances[i];
@@ -969,7 +969,7 @@ private:
                                         }
                                         tsDiff.push_back(Pitch::EDGES_MIRRORED[Pitch::ALL_EDGES_INDEXES[105*t+n]]);
                                         vector<int> distances(105,7);
-                                        game->pitch.calculateDistances2(game->pitch.ball,distances);
+                                        game->pitch.calculateDistancesBits(game->pitch.ball,distances.data(),7);
                                         distances[game->pitch.ball] = 0;
                                         for (int i=0; i < 105; i++) {
                                             int t = distances[Pitch::BALLS_MIRRORED[i]];
@@ -984,7 +984,7 @@ private:
                                         }
                                         tsDiff.push_back(Pitch::ALL_EDGES_INDEXES[105*t+n]);
                                         vector<int> distances(105,7);
-                                        game->pitch.calculateDistances2(game->pitch.ball,distances);
+                                        game->pitch.calculateDistancesBits(game->pitch.ball,distances.data(),7);
                                         distances[game->pitch.ball] = 0;
                                         for (int i=0; i < 105; i++) {
                                             int t = distances[i];
@@ -998,7 +998,7 @@ private:
                                         }
                                         tsDiff.push_back(Pitch::EDGES_MIRRORED[Pitch::ALL_EDGES_INDEXES[105*t+n]]);
                                         vector<int> distances(105,7);
-                                        game->pitch.calculateDistances2(game->pitch.ball,distances);
+                                        game->pitch.calculateDistancesBits(game->pitch.ball,distances.data(),7);
                                         distances[game->pitch.ball] = 0;
                                         for (int i=0; i < 105; i++) {
                                             int t = distances[Pitch::BALLS_MIRRORED[i]];
