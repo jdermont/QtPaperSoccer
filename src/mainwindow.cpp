@@ -28,13 +28,25 @@ MainWindow::MainWindow(QWidget *parent)
     settings.setValue("netfile",netfile);
     cpuParallel = new CpuMctsTTRParallel0(poolSize);
     cpuParallel->moveLimit = moveLimit;
-    // Network* network = new NetworkDeep(1466,hidden,hidden2);
-    // network->load(netfile.toStdString());
-    // network->type = 2;
-    Network* network = new NetworkDeep2Cached2(6301,hidden,hidden2);
-    network->load(netfile.toStdString());
-    ((NetworkDeep2Cached2*)network)->generateCache();
+
+    Network* network;
+    bool useInt16 = false;
+#if (defined(__x86_64__) || defined(__i386__)) && defined(__GNUC__)
+    useInt16 = __builtin_cpu_supports("avx2");
+#endif
+    if (useInt16) {
+        auto *net = new NetworkDeep2Cached2Int16(6301,hidden,hidden2);
+        net->load(netfile.toStdString());
+        net->generateCache();
+        network = net;
+    } else {
+        auto *net = new NetworkDeep2Cached2(6301,hidden,hidden2);
+        net->load(netfile.toStdString());
+        net->generateCache();
+        network = net;
+    }
     network->type = 6;
+
     cpuParallel->agent = network;
 
     qRegisterMetaType<string>("string");
