@@ -1,5 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include <QFileInfo>
+#include <QMessageBox>
+#include <QRegularExpression>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -20,30 +23,56 @@ MainWindow::MainWindow(QWidget *parent)
     settings.setValue("moveLimit",moveLimit);
     bool kurnikColors = settings.value("kurnikColors", false).toBool();
     settings.setValue("kurnikColors",kurnikColors);
-    int hidden = settings.value("hidden", 256).toInt();
-    settings.setValue("hidden",hidden);
-    int hidden2 = settings.value("hidden2", 16).toInt();
-    settings.setValue("hidden2",hidden2);
+    settings.remove("hidden");
+    settings.remove("hidden2");
     QString netfile = settings.value("netfile","256_16_net3").toString();
     settings.setValue("netfile",netfile);
     cpuParallel = new CpuMctsTTRParallel0(poolSize);
     cpuParallel->moveLimit = moveLimit;
 
-    Network* network;
     bool useInt16 = false;
 #if (defined(__x86_64__) || defined(__i386__)) && defined(__GNUC__)
     useInt16 = __builtin_cpu_supports("avx2");
 #endif
-    if (useInt16) {
-        auto *net = new NetworkDeep2Cached2Int16(6301,hidden,hidden2);
-        net->load(netfile.toStdString());
-        net->generateCache();
-        network = net;
-    } else {
-        auto *net = new NetworkDeep2Cached2(6301,hidden,hidden2);
-        net->load(netfile.toStdString());
-        net->generateCache();
-        network = net;
+    const QString netName = QFileInfo(netfile).fileName();
+    const QRegularExpressionMatch deep3 = QRegularExpression("^(\\d+)_(\\d+)_(\\d+)_").match(netName);
+    const QRegularExpressionMatch deep2 = QRegularExpression("^(\\d+)_(\\d+)_").match(netName);
+    Network* network = nullptr;
+    try {
+        if (deep3.hasMatch()) {
+            int hidden = deep3.captured(1).toInt(), hidden2 = deep3.captured(2).toInt(), hidden3 = deep3.captured(3).toInt();
+            if (useInt16) {
+                auto *net = new NetworkDeep3BiasBucketsCached2Int16(6301,hidden,hidden2,hidden3);
+                net->load(netfile.toStdString());
+                net->generateCache();
+                network = net;
+            } else {
+                auto *net = new NetworkDeep3BiasBucketsCached2(6301,hidden,hidden2,hidden3);
+                net->load(netfile.toStdString());
+                net->generateCache();
+                network = net;
+            }
+        } else if (deep2.hasMatch()) {
+            int hidden = deep2.captured(1).toInt(), hidden2 = deep2.captured(2).toInt();
+            if (useInt16) {
+                auto *net = new NetworkDeep2Cached2Int16(6301,hidden,hidden2);
+                net->load(netfile.toStdString());
+                net->generateCache();
+                network = net;
+            } else {
+                auto *net = new NetworkDeep2Cached2(6301,hidden,hidden2);
+                net->load(netfile.toStdString());
+                net->generateCache();
+                network = net;
+            }
+        } else {
+            QMessageBox::critical(nullptr, "Paper Soccer", "netfile \"" + netfile + "\" in qtpapersoccer.ini must be named "
+                                  "hidden_hidden2_name or hidden_hidden2_hidden3_name, e.g. 256_16_net3 or 256_32_32_net4");
+            std::exit(1);
+        }
+    } catch (const std::exception & e) {
+        QMessageBox::critical(nullptr, "Paper Soccer", QString("Cannot load netfile \"") + netfile + "\": " + e.what());
+        std::exit(1);
     }
     network->type = 6;
 
