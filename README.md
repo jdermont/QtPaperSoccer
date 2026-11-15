@@ -45,6 +45,11 @@ time=1
 If you want to analyze a position for few minutes, you should increase the poolSize to 33554432 or 67108864 (or any higher but the number must be power of 2). Watch out for RAM usage! You'd also want to increase moveLimit to 2000 or even 5000, otherwise the win/lose situation may be inaccurate. Paper soccer can have insane branching factor (possible moves in 1 turn).
 
 
+# Changes since 1.3.1
+
+No hidden, hidden2 in the settings - the hidden sizes are inferred by filename. New network type (2 hidden layers, 3 output buckets based on draw edges), change the netfile to 256_32_32_net4
+
+
 # AI
 
 The AI uses neural network for board evaluation. It's rather small, with one-hots inputs, value network. The search is [Unbounded best-first minimax](https://arxiv.org/abs/2012.10700) with UCT component for exploration. This is more like mcts with evaluation from neural network instead from semi-random games. Little description on the inputs is [here](https://github.com/jdermont/playground-kvhfh5iv/blob/master/papersoccer.md).
