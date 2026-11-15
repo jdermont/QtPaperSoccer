@@ -47,7 +47,7 @@ If you want to analyze a position for few minutes, you should increase the poolS
 
 # Changes since 1.3.1
 
-No hidden, hidden2 in the settings - the hidden sizes are inferred by filename. New network type (2 hidden layers, 3 output buckets based on draw edges), change the netfile to 256_32_32_net4
+No hidden, hidden2 in the settings - the hidden sizes are inferred by filename. New network type (3 hidden layers, 3 output buckets based on draw edges), change the netfile to 256_32_32_net4
 
 
 # AI
